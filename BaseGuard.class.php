@@ -1,11 +1,11 @@
 <?php
-
+/**
+ * Classe criada para facilitar a checagem de credenciais em qualquer parte do sistema na plataforma Symfony.
+ * 
+ * @author Romeu Godoi <romeu.godoi@gmail.com>
+ */
 class Guard extends sfGuardSecurityUser
 {
-	public $usuario;
-	public $permissoes;
-	public $opcoes;
-	
     public function canAccess($module, $action)
     {
         $credentials = $this->getCredentialByModule($module, $action);

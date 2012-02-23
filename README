@@ -11,7 +11,7 @@ Solução criada para facilitar a checagem de credenciais em qualquer parte do s
 
 
 
-*####### EXEMPLES #######*
+*####### EXAMPLES #######*
 --------------------------
 Application name: frontend
 
@@ -30,7 +30,7 @@ apps/frontend/modules/clientes/templates/_list_td_actions.php
 </td>
 
 
-*Exemple for dynamic menu using ioMenuPlugin*
+*Example for dynamic menu using ioMenuPlugin*
 ---------------------------------------------
 
 apps/frontend/lib/myUser.class.php
