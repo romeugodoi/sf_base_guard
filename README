@@ -1,0 +1,154 @@
+BaseGuard - Symfony 1.4 based
+=============================
+
+Solução criada para facilitar a checagem de credenciais em qualquer parte do sistema na plataforma Symfony.
+
+
+*Dependencies*
+--------------
+	* Symfony 1.4 - http://www.symfony-project.org/installation/1_4
+	* sfDoctrineGuardPlugin - http://www.symfony-project.org/plugins/sfDoctrineGuardPlugin
+
+
+
+*####### EXEMPLES #######*
+--------------------------
+Application name: frontend
+
+
+*Exemple for link actions*
+--------------------------
+
+apps/frontend/modules/clientes/templates/_list_td_actions.php
+<?php
+<td>
+	<ul> 
+		<?php if ($sf_user->canAccess('clientes', 'editar')): ?>
+        	<?php echo $helper->linkToEdit($clientes); ?>
+        <?php endif; ?>	
+	</ul>
+</td>
+
+
+*Exemple for dynamic menu using ioMenuPlugin*
+---------------------------------------------
+
+apps/frontend/lib/myUser.class.php
+<?php
+
+class myUser extends BaseGuard
+{
+   ...
+}
+
+
+apps/frontend/config/menu.yml
+# Configuração do menu
+name:        Menu
+attributes: { class: primary-nav }
+children: 
+  home:
+    label:          Home
+    route:          "@homepage"
+    requires_auth: true
+  cadastros: 
+    label:          Cadastros
+    route:          "#"
+    requires_auth: true
+    attributes:    { class: menu-tree }
+    children:
+      bairros:
+        label: Bairros
+        route: "@bairros"
+      cidades:
+        label: Cidades
+        route: "@cidades"
+      clientes:
+        label: Clientes
+        route: "@clientes"
+  tabelas_auxiliares: 
+    label:          Tabelas Auxiliares
+    route:          "#"
+    requires_auth: true
+    attributes:    { class: menu-tree }
+    children:
+      categorias: 
+        label:          Categorias
+        route:          "#"
+        requires_auth: true
+        attributes:    { class: menu-tree }
+        children:
+          categorias_itens_area_comum:
+            label: Categorias de Área Comum
+            route: "@categorias_itens_area_comum"
+      naturalidades:
+        label: Naturalidades
+        route: "@naturalidades"
+
+
+apps/frontend/templates/_menu.php
+<?php
+/* @var $sf_user myUser */
+$arr  = sfYaml::load(sfConfig::get("sf_app_config_dir")."/menu.yml");
+$menu = ioMenuItem::createFromArray($arr);
+
+$show     = false;
+$children = $menu['cadastros']->getChildren();
+foreach ($children as $modulo=>$child)
+{
+    $credentials = $sf_user->getCredentialByModule($modulo, 'index');
+    if (is_array($credentials))
+    {
+        $child->setCredentials($credentials);
+        
+        if ($child->shouldBeRendered($sf_user))
+        {
+            $show = true;
+        }
+    }
+}
+$menu['cadastros']->show($show);
+
+$show1    = false;
+$children = $menu['tabelas_auxiliares']->getChildren();
+foreach ($children as $modulo=>$child)
+{
+    if ($modulo != 'categorias')
+    {
+        $credentials = $sf_user->getCredentialByModule($modulo, 'index');
+        if (is_array($credentials))
+        {
+            $child->setCredentials($credentials);
+        
+            if ($child->shouldBeRendered($sf_user))
+            {
+                $show1 = true;
+            }
+        }
+    }
+}
+
+$show     = false;
+$children = $menu['tabelas_auxiliares']->getChild('categorias')->getChildren();
+foreach ($children as $modulo=>$child)
+{
+    $credentials = $sf_user->getCredentialByModule($modulo, 'index');
+    if (is_array($credentials))
+    {
+        $child->setCredentials($credentials);
+        
+        if ($child->shouldBeRendered($sf_user))
+        {
+            $show = true;
+        }
+    }
+}
+
+$menu['tabelas_auxiliares']->getChild('categorias')->show($show);
+if (!$show1 && !$show)
+{
+    $menu['tabelas_auxiliares']->show(false);
+}
+
+// show menu
+echo $menu->render();
